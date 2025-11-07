@@ -1,0 +1,92 @@
+# Azure Developer CLI (azd) configuration
+# This file defines the infrastructure and deployment for the multi-agent system
+
+name: multi-agent-system
+metadata:
+  template: multi-agent-system@0.0.1
+
+services:
+  # Main application service
+  app:
+    project: ./
+    language: python
+    host: containerapp
+
+# Azure resources to provision
+infra:
+  provider: bicep
+  path: ./infra
+
+# Environment variables (reference to .env)
+env:
+  # Azure OpenAI Configuration
+  AZURE_OPENAI_ENDPOINT:
+    type: string
+    description: "Azure OpenAI endpoint URL"
+
+  AZURE_OPENAI_API_KEY:
+    type: string
+    secret: true
+    description: "Azure OpenAI API key"
+
+  AZURE_OPENAI_DEPLOYMENT_NAME:
+    type: string
+    default: "gpt-4o"
+    description: "Azure OpenAI deployment name"
+
+  # Container Apps Configuration
+  AZURE_CONTAINER_APPS_ENVIRONMENT_NAME:
+    type: string
+    description: "Azure Container Apps environment name"
+
+  # Storage Configuration (optional)
+  AZURE_STORAGE_CONNECTION_STRING:
+    type: string
+    secret: true
+    description: "Azure Storage connection string for persistent data"
+
+# Hooks for deployment lifecycle
+hooks:
+  # Run before infrastructure provisioning
+  preprovision:
+    posix:
+      shell: sh
+      run: echo "Preparing to provision Azure resources..."
+    windows:
+      shell: pwsh
+      run: Write-Host "Preparing to provision Azure resources..."
+
+  # Run after infrastructure provisioning
+  postprovision:
+    posix:
+      shell: sh
+      run: |
+        echo "Infrastructure provisioned successfully"
+        echo "Updating environment configuration..."
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "Infrastructure provisioned successfully"
+        Write-Host "Updating environment configuration..."
+
+  # Run before application deployment
+  predeploy:
+    posix:
+      shell: sh
+      run: |
+        echo "Installing dependencies..."
+        pip install -r requirements.txt
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "Installing dependencies..."
+        pip install -r requirements.txt
+
+  # Run after deployment
+  postdeploy:
+    posix:
+      shell: sh
+      run: echo "Multi-agent system deployed successfully!"
+    windows:
+      shell: pwsh
+      run: Write-Host "Multi-agent system deployed successfully!"
